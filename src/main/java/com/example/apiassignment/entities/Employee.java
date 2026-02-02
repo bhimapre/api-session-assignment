@@ -43,13 +43,12 @@ public class Employee {
     @Size(min = 2, max =  50, message = "Role must be between 2 and 50 characters long")
     private String role;
 
-    @NotBlank(message = "Role is required")
+    @NotBlank(message = "City is required")
     @Size(min = 2, max =  50, message = "City must be between 2 and 50 characters long")
     private String city;
 
     @Size(min = 10, max =  200, message = "Address must be between 10 and 200 characters long")
     private String address;
 
-    @NotNull(message = "Photo is required")
     private String photo;
 }

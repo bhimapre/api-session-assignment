@@ -1,25 +1,29 @@
 package com.example.apiassignment.controllers;
 
 import com.example.apiassignment.dto.EmployeeDto;
+import com.example.apiassignment.exception.ResourceNotFoundException;
 import com.example.apiassignment.services.EmployeeService;
-import lombok.AllArgsConstructor;
+import com.example.apiassignment.validationGroup.UpdateGroup;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -28,78 +32,77 @@ import java.util.UUID;
 public class EmployeeController {
 
     private final EmployeeService employeeService;
+    private final MessageSource messageSource;
 
     @Value("${file.upload}")
     private String uploadDir;
 
     // Add Employee
     @PostMapping
-    public ResponseEntity<EmployeeDto> AddEmployee(@RequestBody EmployeeDto employeeDto)
+    public ResponseEntity<EmployeeDto> AddEmployee(@Valid @RequestBody EmployeeDto employeeDto)
     {
-        try{
             EmployeeDto emp = employeeService.createEmployee(employeeDto);
+
             return new ResponseEntity<>(emp, HttpStatus.CREATED);
-        }
-        catch (Exception e) {
-            throw new RuntimeException("Employee creation failed");
-        }
     }
 
     // Get All Employee
     @GetMapping
-    public ResponseEntity<List<EmployeeDto>> getAllStudent() {
-        try {
-            List<EmployeeDto> studentList = employeeService.getAllEmployees();
-            return new ResponseEntity<>(studentList, HttpStatus.OK);
-        } catch (Exception e) {
-            throw new RuntimeException("Getting all employees is failed");
-        }
+    public ResponseEntity<List<EmployeeDto>> getAllStudent()
+    {
+        List<EmployeeDto> employees = employeeService.getAllEmployees();
+        return new ResponseEntity<>(employees, HttpStatus.OK);
     }
 
     // Get Employee By ID
     @GetMapping("/{id}")
     public ResponseEntity<EmployeeDto> getStudentById(@PathVariable("id") UUID id)
     {
-        try {
             EmployeeDto employeeDto = employeeService.getEmployeeById(id);
             return new ResponseEntity<>(employeeDto, HttpStatus.OK);
-        } catch (Exception e) {
-            throw new RuntimeException("Employee not found");
-        }
     }
 
     // Update Employee
     @PutMapping("/{id}")
-    public ResponseEntity<EmployeeDto> updateEmployee(@PathVariable("id") UUID id, @RequestBody EmployeeDto employeeDto)
+    public ResponseEntity<EmployeeDto> updateEmployee(@Validated(UpdateGroup.class) @PathVariable("id") UUID id, @RequestBody EmployeeDto employeeDto)
     {
-        try{
             EmployeeDto updateEmployee = employeeService.updateEmployee(id, employeeDto);
             return ResponseEntity.ok(updateEmployee);
-        } catch (Exception e) {
-            throw new RuntimeException("Updating is failed");
-        }
     }
 
     // Delete Employee
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<Void> deleteEmployee(@PathVariable("id") UUID id) {
-//        try {
-//            employeeService.deleteEmployee(id);
-//            return ResponseEntity.noContent().build();
-//        } catch (Exception e) {
-//            throw new RuntimeException("Deleting is failed");
-//        }
-//    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteEmployee(@PathVariable("id") UUID id) {
+            employeeService.deleteEmployee(id);
+            return ResponseEntity.noContent().build();
+    }
 
     // Update Employee Using Patch
     @PatchMapping("/{id}")
-    public ResponseEntity<EmployeeDto> updateUsingPatch(@PathVariable("id") UUID id)
+    public ResponseEntity<EmployeeDto> updateUsingPatch(@PathVariable("id") UUID id, @RequestBody Map<String, String> updates)
     {
-        try{
-            EmployeeDto deleteEmployee = employeeService.updateEmployeeUsingPatch(id);
-            return ResponseEntity.ok(deleteEmployee);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to upload picture");
-        }
+            EmployeeDto updated = employeeService.updateEmployeeUsingPatch(id, updates.get("address"));
+            return ResponseEntity.ok(updated);
+    }
+
+    @PostMapping("/{id}/photo")
+    public ResponseEntity<Map<String, String>> uploadEmployeePhoto(
+            @PathVariable UUID id,
+            @RequestParam("file") MultipartFile file) throws IOException {
+
+        String fileName = employeeService.uploadEmployeePhoto(id, file);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Photo uploaded successfully");
+        response.put("fileName", fileName);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/photo/{filename}")
+    public ResponseEntity<Resource> getPhoto(@PathVariable String filename) throws MalformedURLException
+    {
+        Resource resource = employeeService.getEmployeePhoto(filename);
+        return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(resource);
     }
 }

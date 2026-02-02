@@ -16,8 +16,6 @@ import java.util.UUID;
 @Data
 public class EmployeeDto {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID employee_id;
 
     @NotBlank(message = "Name is required")
@@ -41,14 +39,13 @@ public class EmployeeDto {
     @Size(min = 2, max =  50, message = "Role must be between 2 and 50 characters long")
     private String role;
 
-    @NotBlank(message = "Role is required")
+    @NotBlank(message = "City is required")
     @Size(min = 2, max =  50, message = "City must be between 2 and 50 characters long")
     private String city;
 
-    @NotBlank(message = "Role is required", groups = {UpdateGroup.class, Default.class})
+    @NotBlank(message = "Address is required", groups = {UpdateGroup.class, Default.class})
     @Size(min = 10, max =  200, message = "Address must be between 10 and 200 characters long", groups = {UpdateGroup.class, Default.class})
     private String address;
 
-    @NotNull(message = "Photo is required")
     private String photo;
 }
