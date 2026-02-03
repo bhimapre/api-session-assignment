@@ -7,6 +7,7 @@ import com.example.apiassignment.mapper.EmployeeMapper;
 import com.example.apiassignment.repositories.EmployeeRepo;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.hibernate.FetchNotFoundException;
 import org.hibernate.annotations.NotFound;
 import org.modelmapper.ModelMapper;
@@ -100,6 +101,19 @@ public class EmployeeService {
     @CacheEvict(value = "employeePhotos", allEntries = true)
     public String uploadEmployeePhoto(UUID id, MultipartFile file) throws IOException {
 
+        String contentType = file.getContentType();
+
+        if(contentType == null || !(contentType.equals("image/png")
+        || contentType.equals("image/jpeg") || contentType.equals("image/jpg")))
+        {
+            throw new BadRequestException("Only JPG, PNG, JPEG images are allowed");
+        }
+
+        if(file.getSize() > 10 *1024 *1024)
+        {
+            throw new BadRequestException("File size must be less than 10 MB");
+        }
+
         Employee employee = employeeRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
 
@@ -128,6 +142,8 @@ public class EmployeeService {
     @Cacheable(value = "employeePhotos", key = "#filename")
     public Resource getEmployeePhoto(String filename) throws MalformedURLException
     {
+//        System.out.println("image is read from backend");
+
         Path path = Paths.get(uploadDir).resolve(filename);
 
         Resource resource = new UrlResource(path.toUri());

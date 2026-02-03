@@ -34,9 +34,6 @@ public class EmployeeController {
     private final EmployeeService employeeService;
     private final MessageSource messageSource;
 
-    @Value("${file.upload}")
-    private String uploadDir;
-
     // Add Employee
     @PostMapping
     public ResponseEntity<EmployeeDto> AddEmployee(@Valid @RequestBody EmployeeDto employeeDto)
