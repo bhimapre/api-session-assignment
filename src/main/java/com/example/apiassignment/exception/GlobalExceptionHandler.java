@@ -47,4 +47,10 @@ public class GlobalExceptionHandler {
         response.put("message", ex.getMessage());
         return response;
     }
+
+    @ExceptionHandler(Exception.class)
+    public String handleall(Exception e){
+        String message = e.getMessage();
+        return message;
+    }
 }

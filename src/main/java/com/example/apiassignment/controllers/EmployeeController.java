@@ -102,4 +102,11 @@ public class EmployeeController {
         Resource resource = employeeService.getEmployeePhoto(filename);
         return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(resource);
     }
+
+    @GetMapping("hello")
+    public ResponseEntity<String> expedemo() throws RuntimeException
+    {
+        throw new RuntimeException("Error Message come");
+    }
+
 }

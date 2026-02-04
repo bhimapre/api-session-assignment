@@ -3,20 +3,15 @@ package com.example.apiassignment.services;
 import com.example.apiassignment.dto.EmployeeDto;
 import com.example.apiassignment.entities.Employee;
 import com.example.apiassignment.exception.ResourceNotFoundException;
-import com.example.apiassignment.mapper.EmployeeMapper;
 import com.example.apiassignment.repositories.EmployeeRepo;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
-import org.hibernate.FetchNotFoundException;
-import org.hibernate.annotations.NotFound;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,7 +24,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -52,7 +46,7 @@ public class EmployeeService {
 
     // Get Employee By ID
     public EmployeeDto getEmployeeById(UUID employee_id){
-        Employee employee = employeeRepo.findById(employee_id).orElseThrow(() -> new EntityNotFoundException("Employee not found"));
+        Employee employee = employeeRepo.findById(employee_id).orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
         return modelMapper.map(employee, EmployeeDto.class);
     }
 
@@ -66,7 +60,7 @@ public class EmployeeService {
     // Update Employee
     public EmployeeDto updateEmployee(UUID employee_id, EmployeeDto empDto)
     {
-        Employee employee = employeeRepo.findById(employee_id).orElseThrow(() -> new EntityNotFoundException("Employee not found"));
+        Employee employee = employeeRepo.findById(employee_id).orElseThrow(() -> new ResourceNotFoundException("Employee not found"));
 
         employee.setName(empDto.getName());
         employee.setEmail(empDto.getEmail());
@@ -142,7 +136,7 @@ public class EmployeeService {
     @Cacheable(value = "employeePhotos", key = "#filename")
     public Resource getEmployeePhoto(String filename) throws MalformedURLException
     {
-//        System.out.println("image is read from backend");
+       // System.out.println("image is read from backend");
 
         Path path = Paths.get(uploadDir).resolve(filename);
 
